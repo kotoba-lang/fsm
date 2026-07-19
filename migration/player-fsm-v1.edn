@@ -1,0 +1,39 @@
+{:schema "kotoba-fsm-migration/v1"
+ :profile :kami.fsm/player-v1
+ :legacy
+ {:implementation "src/kami/fsm.cljc"
+  :facade "src/kotoba/fsm.cljc"
+  :domain :generic-edn-fsm
+  :status :retained-semantic-oracle}
+ :canonical
+ {:implementation "src/kami/fsm.kotoba"
+  :facade "src/kotoba/fsm.kotoba"
+  :conformance "test/kotoba/fsm_conformance.kotoba"
+  :domain {:states [:idle :move :jump]
+           :events [:moving :still :jumping]
+           :transition-profile :default-player-fsm}}
+ :safety
+ {:ambient-authority false
+  :host-capabilities []
+  :general-callback-lowering false
+  :generic-map-narrowed false
+  :legacy-generic-api-retained true}
+ :verification
+ {:compiler-commit "94f29b24cdf5c5aa92b35cf2dd41c1d56b8205c1"
+  :installed-release "v0.6.29"
+  :release-checksum-verified true
+  :legacy {:tests 1 :assertions 5 :failures 0 :errors 0}
+  :reference {:runtime-main 42}
+  :web {:runtime-main 42
+        :project-digest "77dd631d462c0b7e3f8dad33d8eee00b6337f5b26e41efeb8c1a35adade6cf40"
+        :required-capabilities []
+        :artifact-sha256 "d12dd650083472a48e671a57dd971729fcdfcd3c37194765f669a1829c30f7fc"}
+  :wasm {:runtime-main 42
+         :project-digest "77dd631d462c0b7e3f8dad33d8eee00b6337f5b26e41efeb8c1a35adade6cf40"
+         :value-abi :externref-v1
+         :artifact-sha256 "d088e3da01419c8c8a6e16c4addaef74f8515a5a41bb0f7d3bd58a864f24088c"
+         :browser-host-heap-used 0}}
+ :cutover
+ {:profile-authorized true
+  :generic-api-authorized false
+  :consumer-cutover :new-profile-only}}
