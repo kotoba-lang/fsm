@@ -18,3 +18,19 @@ jobs:
         with:
           cli: latest
       - run: clojure -M:test
+      - name: Verify bounded Kotoba player profile
+        shell: bash
+        run: |
+          set -euo pipefail
+          release=https://github.com/kotoba-lang/kotoba/releases/download/v0.6.29
+          curl -fsSLO "$release/kotoba-linux-amd64.tar.gz"
+          curl -fsSLO "$release/kotoba-linux-amd64.tar.gz.sha256"
+          sha256sum -c kotoba-linux-amd64.tar.gz.sha256
+          tar -xzf kotoba-linux-amd64.tar.gz
+          ./kotoba compile test/kotoba/fsm_conformance.kotoba --source-path src \
+            --target web --output fsm.mjs --json
+          ./kotoba compile test/kotoba/fsm_conformance.kotoba --source-path src \
+            --target wasm --output fsm.wasm --json
+          node --input-type=module -e \
+            'const m=await import("./fsm.mjs"); const v=m.instantiateKotoba(Object.freeze({})).main(); if(v!==42n) throw new Error(`expected 42n, got ${v}`);'
+          test "$(od -An -tx1 -N4 fsm.wasm | tr -d ' \n')" = 0061736d
