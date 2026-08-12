@@ -1,12 +1,32 @@
 (ns fsm-parity-test
-  "Parity gate binding the two implementations of the player FSM together.
+  "Parity gate binding the generic engine to the Kotoba player profile.
+
+   ## What this gate means now, which is not what it meant when it landed
+
+   It landed as the only thing connecting two implementations of one machine.
+   That is no longer what `default-player-fsm` is: `kami.fsm/advance` DELEGATES
+   that machine to the shipped `resources/kami/fsm/oracle/player.kir.edn`, so
+   pointing this gate at it would compare a fresh compile of `fsm.kotoba`
+   against the artifact compiled from `fsm.kotoba` — a real check, but the one
+   `kami.fsm-oracle-test/the-shipped-artifact-is-the-current-source-compiled`
+   already makes directly, and not a check on the generic engine at all.
+
+   So the oracle here is `generic-oracle` below: the same transition table
+   under a map `advance` cannot recognise as the profile's machine, which is
+   what keeps a GENERIC-engine answer on the other side of every comparison.
+   With that, this file still says exactly what it always said — the Kotoba
+   profile and the map-driven engine agree over the whole declared domain — and
+   the two checks it structurally cannot make (that the shipped artifact is the
+   current source, and that the host actually runs it) live next door in
+   `kami.fsm-oracle-test`.
 
    This package states one state machine twice:
 
      * `src/kami/fsm.cljc` (+ the `src/kotoba/fsm.cljc` facade) — the generic
-       map-driven EDN engine. `default-player-fsm` is the transition table the
-       bounded profile mirrors. This is what every consumer and `fsm_test.clj`
-       actually calls, so it is the ORACLE here.
+       map-driven EDN engine, reached here through `generic-oracle`. It is
+       still what answers every machine that is not `default-player-fsm`, every
+       state the profile does not declare, and every event collection it cannot
+       express, so it is still an implementation and it is the ORACLE here.
      * `src/kami/fsm.kotoba` (+ the `src/kotoba/fsm.kotoba` facade) — the closed
        `:kami.fsm/player-v1` profile, with different names and a different
        encoding (a `[:variant …]` per state instead of a keyword, a
@@ -33,7 +53,7 @@
      |                     | `(initial default-player-fsm)`            |
      | `move-state`        | the state keyword `:move`                 |
      | `jump-state`        | the state keyword `:jump`                 |
-     | `advance-player-v1` | `(advance default-player-fsm state events)`|
+     | `advance-player-v1` | `(advance generic-oracle state events)`    |
      |   arg `state`       | the `state` argument                      |
      |   arg `events`      | the `events` set                          |
      |   result            | the returned state keyword                |
@@ -44,13 +64,17 @@
    below pins that as a tripwire rather than leaving it implicit."
   (:require [clojure.test :refer [deftest is testing]]
             [kotoba.compiler.core :as compiler]
-            ;; The compiler pin in deps.edn :test exposes the KIR interpreter
-            ;; as `kotoba.compiler.ir`. Newer compiler pins renamed it to
-            ;; `kotoba.kir`; this repo is pinned to the older layout (verified
-            ;; in the resolved dep: src/kotoba/compiler/ir.cljc exists,
-            ;; src/kotoba/kir.cljc does not), so require this one. If the pin
-            ;; is bumped past the rename, this require is what will fail first.
-            [kotoba.compiler.ir :as ir]
+            ;; The KIR interpreter, from `io.github.kotoba-lang/kotoba-kir`.
+            ;; It used to be required here as `kotoba.compiler.ir`, which is
+            ;; where it lived INSIDE the compiler at the old `94f29b24` pin.
+            ;; ADR-2607266000 Phase B moved it into its own repository, and
+            ;; that move is what let `kotoba-kir` become a runtime dep of this
+            ;; library while the compiler stayed test-only — so the rename is
+            ;; not incidental to this file, it is the reason the artifact next
+            ;; door can be RUN. Verified in the resolved deps: `806f5cef`
+            ;; provides no `src/kotoba/compiler/ir.cljc`, and its own deps.edn
+            ;; names `kotoba-kir d58972da`, which `deps.edn` pins.
+            [kotoba.kir :as ir]
             [kotoba.fsm :as cljc]))
 
 ;; ---------------------------------------------------------------------------
@@ -109,8 +133,24 @@
   [kir state events]
   (ir/execute kir 'advance-player-v1 [state (->kotoba-events events)]))
 
+(def ^:private generic-oracle
+  "`default-player-fsm` under a map `kami.fsm/advance` cannot recognise as the
+   profile's machine, so it answers with the GENERIC engine.
+
+   Same `:transitions`, so the semantics are identical and this gate compares
+   what it always compared. Different map, so the delegation condition — whole-
+   map equality with `default-player-fsm` — is false. Without this the oracle
+   side of every assertion below would be the shipped artifact, i.e. the thing
+   under test.
+
+   That the marker really does turn delegation off is not left to this comment:
+   `kami.fsm-oracle-test/the-generic-engine-does-not-reach-the-guest` runs a
+   deliberately-wrong core and requires a retuned copy of `default-player-fsm`
+   to be unaffected by it."
+  (assoc cljc/default-player-fsm ::not-the-profile true))
+
 (defn- cljc-advance [state events]
-  (cljc/advance cljc/default-player-fsm state events))
+  (cljc/advance generic-oracle state events))
 
 ;; ---------------------------------------------------------------------------
 ;; The closed domain, enumerated exhaustively
@@ -164,6 +204,14 @@
       (testing "idle-state is the profile's initial state"
         (is (= (cljc/initial cljc/default-player-fsm)
                (state-tag (kotoba-state kir :idle))))))))
+
+(deftest the-oracle-side-is-the-generic-engine
+  ;; The one thing this file now depends on that it did not before. If someone
+  ;; loosens the delegation condition so that a marked copy of the machine is
+  ;; recognised too, every assertion below silently becomes the artifact
+  ;; compared against itself, and nothing would say so.
+  (is (not= cljc/default-player-fsm generic-oracle))
+  (is (= (:transitions cljc/default-player-fsm) (:transitions generic-oracle))))
 
 (deftest advance-parity-over-the-whole-domain
   ;; 3 states x 8 event subsets = 24 cases per module. Not a hand-picked few.
