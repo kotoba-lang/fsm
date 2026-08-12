@@ -1,25 +1,54 @@
 ;; kotoba-lang/fsm — kami.fsm SSoT (EDN state machines). Pure .cljc.
 ;; ADR-2607102200 addendum 7.
-{:paths ["src"]
+{:paths ["src" "resources"]
  :deps {org.clojure/clojure {:mvn/version "1.11.1"}
-        org.clojure/clojurescript {:mvn/version "1.11.132"}}
+        org.clojure/clojurescript {:mvn/version "1.11.132"}
+        ;; The KIR interpreter is a RUNTIME dependency: `kami.fsm-oracle`
+        ;; executes the shipped `resources/kami/fsm/oracle/player.kir.edn`
+        ;; through it, so the transition rule in `src/kami/fsm.kotoba` is what
+        ;; this library RUNS for the player profile rather than what a test
+        ;; compares against. The COMPILER stays test-only (see :test) — it
+        ;; produced the artifact and never reaches a consumer.
+        ;;
+        ;; Pinned to the kir the pinned compiler emits for: `d58972da` is the
+        ;; sha `compiler/806f5cef`'s own deps.edn names. They have to match.
+        ;; KIR is a versioned document, and an interpreter reading a shape its
+        ;; emitter did not write is exactly the failure the artifact was
+        ;; supposed to remove, so advancing one of these two pins without the
+        ;; other is not a smaller change than advancing neither.
+        io.github.kotoba-lang/kotoba-kir
+        {:git/url "https://github.com/kotoba-lang/kotoba-kir.git"
+         :git/sha "d58972da61758584a5bec0e863bcb3ea6fdd6c64"}}
  :aliases
  {:test {:extra-paths ["test"]
          ;; The Kotoba compiler is a TEST-ONLY dependency: it lives in :test
          ;; and nowhere in :deps, so it cannot change what this library does.
-         ;; It exists purely so the parity gate can compile the `.kotoba`
-         ;; profile in-process and diff it against the `.cljc` oracle.
+         ;; It compiles the `.kotoba` in-process for the parity gate and for
+         ;; the drift check in `kami.fsm-oracle-test`. Nothing under src/
+         ;; requires it — src/ requires `kotoba.kir`, a runtime dep above.
          ;;
-         ;; The SHA is the compiler commit this repo already ships against,
-         ;; recorded in migration/player-fsm-v1.edn :verification/:compiler-commit
-         ;; (release v0.6.29, the same release .github/workflows/ci.yml
-         ;; downloads). Keep the three in step: bumping one without the others
-         ;; makes the gate measure a compiler the repo does not ship.
+         ;; Advanced from `94f29b24` (release v0.6.29) to `806f5cef` (the
+         ;; commit `manifest/west.yml` pins) for one reason: at `94f29b24` the
+         ;; KIR interpreter still lived INSIDE the compiler as
+         ;; `kotoba.compiler.ir` — measured, `src/kotoba/compiler/ir.cljc`
+         ;; exists there and `kotoba-kir` appears in its deps.edn in no form —
+         ;; so running the shipped artifact would have put the whole compiler
+         ;; on this library's runtime classpath. It moved out to
+         ;; `kotoba-lang/kotoba-kir` in ADR-2607266000 Phase B, which is what
+         ;; makes a runtime-interpreter/test-only-compiler split expressible at
+         ;; all. `806f5cef` provides `kotoba.kir` and no `kotoba.compiler.ir`,
+         ;; which is why `fsm-parity-test` now requires the former.
          :extra-deps {io.github.cognitect-labs/test-runner
                       {:git/tag "v0.5.1" :git/sha "dfb30dd"}
                       io.github.kotoba-lang/compiler
-                      {:git/sha "94f29b24cdf5c5aa92b35cf2dd41c1d56b8205c1"}}
+                      {:git/url "https://github.com/kotoba-lang/compiler.git"
+                       :git/sha "806f5cef7d5bc11ad8ec8514ad6121efc73be6c7"}}
          :main-opts ["-m" "cognitect.test-runner"]
          :exec-fn cognitect.test-runner.api/test}
+  ;; Regenerate the shipped decision-core KIR. Combine with :test, which is
+  ;; where the compiler lives; a later alias's :main-opts wins:
+  ;;
+  ;;   clojure -M:test:gen
+  :gen {:main-opts ["-m" "kami.fsm-oracle-gen"]}
   :lint {:replace-deps {clj-kondo/clj-kondo {:mvn/version "2024.11.14"}}
          :main-opts ["-m" "clj-kondo.main" "--lint" "src" "test" "--fail-level" "error"]}}}
