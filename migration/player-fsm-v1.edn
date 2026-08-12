@@ -23,6 +23,21 @@
   :installed-release "v0.6.29"
   :release-checksum-verified true
   :legacy {:tests 1 :assertions 5 :failures 0 :errors 0}
+  ;; The canonical profile and the retained semantic oracle are bound to each
+  ;; other by an in-process gate, not merely asserted to be equivalent. Before
+  ;; it existed, :reference/:web/:wasm below only showed the Kotoba graph links
+  ;; and executes -- its `main` hard-codes its own expectations, so it never
+  ;; observes the .cljc at all.
+  :parity {:gate "test/fsm_parity_test.clj"
+           :oracle "kami.fsm/advance over kami.fsm/default-player-fsm"
+           :canonical "kami.fsm/advance-player-v1"
+           :domain-cases 24
+           :coverage :exhaustive-over-declared-domain
+           :out-of-alphabet-events-checked true
+           :two-step-sequences-checked true
+           :unbound-exports []
+           :unmodelled-legacy-api [:params]
+           :suite {:tests 7 :assertions 442 :failures 0 :errors 0}}
   :reference {:runtime-main 42}
   :web {:runtime-main 42
         :project-digest "77dd631d462c0b7e3f8dad33d8eee00b6337f5b26e41efeb8c1a35adade6cf40"
