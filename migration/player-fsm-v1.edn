@@ -20,7 +20,7 @@
   :generator "test/kami/fsm_oracle_gen.clj"
   :regenerate "clojure -M:test:gen"
   :artifact-target :js-kotoba-v1
-  :interpreter {:dep "io.github.kotoba-lang/kotoba-kir"
+  :interpreter {:dep "io.github.kotoba-lang/osaho"
                 :sha "d58972da61758584a5bec0e863bcb3ea6fdd6c64"
                 :namespace "kotoba.kir"
                 :scope :runtime}
