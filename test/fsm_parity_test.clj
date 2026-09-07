@@ -64,7 +64,7 @@
    below pins that as a tripwire rather than leaving it implicit."
   (:require [clojure.test :refer [deftest is testing]]
             [kotoba.compiler.core :as compiler]
-            ;; The KIR interpreter, from `io.github.kotoba-lang/kotoba-kir`.
+            ;; The KIR interpreter, from `io.github.kotoba-lang/osaho`.
             ;; It used to be required here as `kotoba.compiler.ir`, which is
             ;; where it lived INSIDE the compiler at the old `94f29b24` pin.
             ;; ADR-2607266000 Phase B moved it into its own repository, and
