@@ -18,7 +18,7 @@
  {:seam "src/kami/fsm_oracle.cljk"
   :artifact "resources/kami/fsm/oracle/player.kir.edn"
   :generator "test/kami/fsm_oracle_gen.cljk"
-  :regenerate "clojure -M:test:gen"
+  :regenerate "kbb -M:test:gen"
   :artifact-target :js-kotoba-v1
   :interpreter {:dep "io.github.kotoba-lang/osaho"
                 :sha "d58972da61758584a5bec0e863bcb3ea6fdd6c64"

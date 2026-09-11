@@ -35,13 +35,13 @@ On ClojureScript there is no classpath, so a host must call
 Regenerate the artifact after editing the `.kotoba`:
 
 ```sh
-clojure -M:test:gen
+kbb -M:test:gen
 ```
 
 ## Tests
 
 ```sh
-clojure -M:test
+kbb -M:test
 ```
 
 - `test/fsm_parity_test.cljk` — the generic engine against the Kotoba profile
