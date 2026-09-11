@@ -22,7 +22,7 @@
 
    This package states one state machine twice:
 
-     * `src/kami/fsm.cljc` (+ the `src/kotoba/fsm.cljc` facade) — the generic
+     * `src/kami/fsm.cljk` (+ the `src/kotoba/fsm.cljk` facade) — the generic
        map-driven EDN engine, reached here through `generic-oracle`. It is
        still what answers every machine that is not `default-player-fsm`, every
        state the profile does not declare, and every event collection it cannot
