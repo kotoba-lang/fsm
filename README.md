@@ -44,12 +44,12 @@ clojure -M:test:gen
 clojure -M:test
 ```
 
-- `test/fsm_parity_test.clj` — the generic engine against the Kotoba profile
+- `test/fsm_parity_test.cljk` — the generic engine against the Kotoba profile
   over every state crossed with every subset of the declared alphabet, plus
   out-of-alphabet events and two-step sequences. Its oracle is now a *marked
   copy* of the machine, so that the comparison stays engine-vs-profile rather
   than artifact-vs-itself.
-- `test/kami/fsm_oracle_test.clj` — the two checks a parity test structurally
+- `test/kami/fsm_oracle_test.cljk` — the two checks a parity test structurally
   cannot make: that the shipped artifact **is** the current source compiled,
   and that the host **runs** it (a deliberately-wrong core is registered and
   the host is required to follow it — and required *not* to, for every call

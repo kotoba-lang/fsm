@@ -1,8 +1,8 @@
 {:schema "kotoba-fsm-migration/v1"
  :profile :kami.fsm/player-v1
  :legacy
- {:implementation "src/kami/fsm.cljc"
-  :facade "src/kotoba/fsm.cljc"
+ {:implementation "src/kami/fsm.cljk"
+  :facade "src/kotoba/fsm.cljk"
   :domain :generic-edn-fsm
   ;; Was :retained-semantic-oracle, i.e. the thing that RAN while the profile
   ;; was a checked replica. It is now the generic engine only: for
@@ -15,9 +15,9 @@
  ;; The authority moved: the .kotoba is what executes, not what a test compares
  ;; against. The seam is deliberately thin and refuses rather than falling back.
  :runtime
- {:seam "src/kami/fsm_oracle.cljc"
+ {:seam "src/kami/fsm_oracle.cljk"
   :artifact "resources/kami/fsm/oracle/player.kir.edn"
-  :generator "test/kami/fsm_oracle_gen.clj"
+  :generator "test/kami/fsm_oracle_gen.cljk"
   :regenerate "clojure -M:test:gen"
   :artifact-target :js-kotoba-v1
   :interpreter {:dep "io.github.kotoba-lang/osaho"
@@ -73,7 +73,7 @@
   ;; it existed, :reference/:web/:wasm below only showed the Kotoba graph links
   ;; and executes -- its `main` hard-codes its own expectations, so it never
   ;; observes the .cljc at all.
-  :parity {:gate "test/fsm_parity_test.clj"
+  :parity {:gate "test/fsm_parity_test.cljk"
            ;; The oracle can no longer be default-player-fsm: that machine now
            ;; RUNS the shipped artifact, so the gate would compare a fresh
            ;; compile against the artifact compiled from the same source. It is
