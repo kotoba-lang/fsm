@@ -23,7 +23,7 @@
   states that in the direction that can fail: under a core that gets every
   profile answer wrong, a call outside the profile is expected to be
   UNCHANGED."
-  (:require [clojure.edn :as edn]
+  (:require [kotoba.lang.edn :as edn]
             [clojure.java.io :as io]
             [kotoba.test :refer [deftest is testing]]
             [kami.fsm :as fsm]
