@@ -25,7 +25,7 @@
   UNCHANGED."
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [clojure.test :refer [deftest is testing]]
+            [kotoba.test :refer [deftest is testing]]
             [kami.fsm :as fsm]
             [kami.fsm-oracle :as oracle]
             [kami.fsm-oracle-gen :as gen]

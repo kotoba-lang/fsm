@@ -62,7 +62,7 @@
    payload that the profile always sets to 0, so the Kotoba side models
    transitions only, not the per-state visual params. `params-is-unbound`
    below pins that as a tripwire rather than leaving it implicit."
-  (:require [clojure.test :refer [deftest is testing]]
+  (:require [kotoba.test :refer [deftest is testing]]
             [kotoba.compiler.core :as compiler]
             ;; The KIR interpreter, from `io.github.kotoba-lang/osaho`.
             ;; It used to be required here as `kotoba.compiler.ir`, which is
